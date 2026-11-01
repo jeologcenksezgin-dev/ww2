@@ -1,3 +1,5 @@
-﻿# Extracted assets (source zips)
-assets_extracted/
+.snapshots/
+.vscode/
+node_modules/
 *.zip
+
