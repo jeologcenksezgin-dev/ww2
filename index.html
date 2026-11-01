@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WW2 Strategy — Dünya Haritalı Sıra Tabanlı Strateji</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- MAIN MENU -->
+<div id="mainMenu" class="screen active">
+  <div class="menu-bg"></div>
+  <div class="menu-content">
+    <div class="title-block">
+      <svg width="700" height="130" viewBox="0 0 700 130" class="title-svg">
+        <defs>
+          <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#c8a96e"/>
+            <stop offset="50%" style="stop-color:#f5d78e"/>
+            <stop offset="100%" style="stop-color:#a07840"/>
+          </linearGradient>
+          <filter id="shadow"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.8"/></filter>
+        </defs>
+        <text x="350" y="65" text-anchor="middle" font-family="'Georgia',serif" font-size="72" font-weight="bold"
+              fill="url(#titleGrad)" filter="url(#shadow)" letter-spacing="8">WW2 STRATEGY</text>
+        <text x="350" y="105" text-anchor="middle" font-family="'Georgia',serif" font-size="24"
+              fill="#c8a96e" letter-spacing="4">DÜNYA SAVAŞI STRATEJİ OYUNU</text>
+        <line x1="50" y1="115" x2="650" y2="115" stroke="#c8a96e" stroke-width="1" opacity="0.5"/>
+      </svg>
+    </div>
+
+    <div class="faction-select">
+      <h3>🎖️ CÖPHENİZİ SEÇİN</h3>
+      <div class="faction-cards" id="factionCards"></div>
+    </div>
+
+    <div class="menu-buttons">
+      <button class="btn-gold" onclick="startGame()">⚔️ SAVAŞI BAŞLAT</button>
+      <button class="btn-outline" onclick="showRules()">📜 KURALLAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- RULES SCREEN -->
+<div id="rulesScreen" class="screen">
+  <div class="rules-content">
+    <h2>📜 Oyun Kuralları</h2>
+    <div class="rules-grid">
+      <div class="rule-card">🗺️ <b>Harita</b> — Dünya haritası üzerindeki ülkeleri (provinces) fethederek toprak genişletin</div>
+      <div class="rule-card">⚔️ <b>Saldırı</b> — Komşu bir ülkeye saldırmak için üzerini tıklayın ve "Saldır" butonuna basın</div>
+      <div class="rule-card">🎖️ <b>Asker</b> — Her bölge üretim gücüne göre asker üretir</div>
+      <div class="rule-card">🏭 <b>Endüstri</b> — Her tur bölgelerden kaynak kazanırsınız</div>
+      <div class="rule-card">🛡️ <b>Savunma</b> — Savunuculuk saldırıya %20 bonus verir</div>
+      <div class="rule-card">🏆 <b>Zafer</b> — Tüm ana başkentleri ele geçirin veya belirli sayıda bölgeye ulaşın</div>
+    </div>
+    <button class="btn-gold" onclick="hideRules()">← GERİ</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="screen">
+  <!-- TOP BAR -->
+  <div id="topBar">
+    <div class="top-left">
+      <span id="playerFlagIcon" class="faction-flag"></span>
+      <span id="playerName" class="player-name">Almanya</span>
+    </div>
+    <div class="top-center">
+      <div class="stat-pill">📅 Yıl: <span id="yearDisplay">1939</span></div>
+      <div class="stat-pill">⏱️ Tur: <span id="turnDisplay">1</span></div>
+      <div class="stat-pill">🏭 Kaynak: <span id="resourceDisplay">50</span></div>
+      <div class="stat-pill">🗺️ Bölge: <span id="provinceDisplay">0</span></div>
+      <div class="stat-pill">💂 Ordu: <span id="armyDisplay">0</span></div>
+    </div>
+    <div class="top-right">
+      <button class="btn-turn" onclick="endTurn()">⏭️ TUR BİTİR</button>
+      <button class="btn-sm" onclick="toggleUnitsPanel()">🎖️ BİRLİKLER</button>
+    </div>
+  </div>
+
+  <!-- WORLD MAP -->
+  <div id="mapContainer">
+    <svg id="worldMap" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <pattern id="oceanPattern" patternUnits="userSpaceOnUse" width="40" height="40">
+          <rect width="40" height="40" fill="#1a3a5c"/>
+          <circle cx="20" cy="20" r="15" fill="none" stroke="#1e4570" stroke-width="0.5" opacity="0.3"/>
+        </pattern>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="shadow2"><feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.5"/></filter>
+      </defs>
+
+      <!-- OCEAN -->
+      <rect width="1400" height="700" fill="url(#oceanPattern)"/>
+
+      <!-- Continent outlines will be drawn by JS -->
+      <g id="mapRegions"></g>
+      <g id="mapLabels"></g>
+      <g id="mapUnits"></g>
+      <g id="mapBorders"></g>
+    </svg>
+  </div>
+
+  <!-- BOTTOM PANEL -->
+  <div id="bottomPanel">
+    <div id="selectedInfo" class="info-panel">
+      <div class="info-header">
+        <span id="selectedName">🗺️ Bir bölge seçin</span>
+        <span id="selectedFlag"></span>
+      </div>
+      <div id="selectedDetails" class="info-details"></div>
+    </div>
+
+    <div id="actionPanel" class="action-panel">
+      <button class="btn-action" id="btnAttack" onclick="attackProvince()" disabled>⚔️ SALDIR</button>
+      <button class="btn-action" id="btnReinforce" onclick="reinforceProvince()" disabled>💂 TAKVİYE</button>
+      <button class="btn-action" id="btnBuild" onclick="buildFortification()" disabled>🏰 KALECİK</button>
+    </div>
+
+    <div id="logPanel" class="log-panel">
+      <div class="log-title">📜 Savaş Günlüğü</div>
+      <div id="logContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- UNITS PANEL (side) -->
+<div id="unitsPanel" class="side-panel hidden">
+  <div class="panel-header">
+    <h3>🎖️ Birlikler & Silahlar</h3>
+    <button onclick="toggleUnitsPanel()">✕</button>
+  </div>
+  <div id="unitsContent"></div>
+</div>
+
+<!-- BATTLE MODAL -->
+<div id="battleModal" class="modal hidden">
+  <div class="modal-content battle-modal">
+    <h2>⚔️ MUHAREBE!</h2>
+    <div class="battle-sides">
+      <div class="battle-side attacker">
+        <div class="battle-side-title" id="attackerTitle">SALDIRAN</div>
+        <img id="attackerImg" src="" alt="" class="battle-unit-img">
+        <div id="attackerStats"></div>
+      </div>
+      <div class="battle-vs">VS</div>
+      <div class="battle-side defender">
+        <div class="battle-side-title" id="defenderTitle">SAVUNAN</div>
+        <img id="defenderImg" src="" alt="" class="battle-unit-img">
+        <div id="defenderStats"></div>
+      </div>
+    </div>
+    <div id="battleLog" class="battle-log"></div>
+    <div id="battleResult" class="battle-result hidden"></div>
+    <button class="btn-gold" id="battleContinue" onclick="closeBattle()">DEVAM ET</button>
+  </div>
+</div>
+
+<!-- VICTORY/DEFEAT MODAL -->
+<div id="endModal" class="modal hidden">
+  <div class="modal-content end-modal">
+    <div id="endIcon" style="font-size:80px">🏆</div>
+    <h1 id="endTitle">ZAFERİNİZ!</h1>
+    <p id="endMsg"></p>
+    <button class="btn-gold" onclick="location.reload()">🔄 YENİDEN OYNA</button>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="map.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
+
