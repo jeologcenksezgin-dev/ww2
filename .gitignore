@@ -1,0 +1,4 @@
+.snapshots/
+.vscode/
+node_modules/
+*.zip
